@@ -6,8 +6,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.opentoolset.expect.ShellExecutor.SessionBuilder;
 
 import net.sf.expectit.Result;
@@ -18,16 +21,35 @@ public class TestExpectIt {
 
 	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
+	@BeforeEach
+	public void before(TestInfo testInfo) {
+		System.out.printf("---\nExecuting: %s\n---\n", testInfo.getTestMethod().orElseThrow().getName());
+	}
+
+	@AfterEach
+	public void after(TestInfo testInfo) {
+		System.out.printf("---\nFinished: %s\n---\n", testInfo.getTestMethod().orElseThrow().getName());
+	}
+
 	@Test
-	public void testShellExecutorWithKeytool() throws Exception {
+	public void testShellExecutorExecutingSingleCommand() throws Exception {
+		SessionBuilder sessionBuilder = new ShellExecutor.SessionBuilder();
+		try (ShellExecutor.Session session = sessionBuilder.create()) {
+			Result result = session.sendLine("ls -la");
+			Assertions.assertTrue(result.isSuccessful());
+			System.out.println(result.getInput());
+		}
+	}
+
+	@Test
+	public void testShellExecutorManagingJavaKeystore() throws Exception {
 		SessionBuilder sessionBuilder = new ShellExecutor.SessionBuilder();
 		sessionBuilder.withShell("/bin/sh");
 		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
 		try (ShellExecutor.Session session = sessionBuilder.create()) {
 			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
-			session.sendLine(String.format("mkdir -pv %s; pwd", path));
-
 			Result result;
+			result = session.sendLine(String.format("mkdir -pv %s; pwd", path));
 			result = session.sendLine(String.format("cd %s; pwd", path), Matchers.contains(path.toString()));
 			Assertions.assertTrue(result.isSuccessful());
 
@@ -77,7 +99,7 @@ public class TestExpectIt {
 			Assertions.assertTrue(result.isSuccessful());
 
 			System.out.printf("New cert alias: %s\n", alias);
-			System.out.printf("Last command output:\n%s", result.getInput().trim());
+			System.out.printf("Last command output:\n%s\n", result.getInput().trim());
 		}
 	}
 }

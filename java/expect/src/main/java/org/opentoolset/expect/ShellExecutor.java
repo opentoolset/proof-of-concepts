@@ -43,7 +43,7 @@ public class ShellExecutor {
 
 	public static class Session implements Closeable {
 
-		private String shell;
+		private String shell = "/bin/sh";
 		private long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
 		private TimeUnit unit = TimeUnit.MILLISECONDS;
 
@@ -108,7 +108,7 @@ public class ShellExecutor {
 					}
 				})));
 			} else {
-				Matcher<Result> matcher = Matchers.eof();
+				Matcher<Result> matcher = Matchers.regexp("\n$");
 				resultMap.put(matcher, this.expect.withTimeout(duration, timeUnit).expect(matcher));
 			}
 			return resultMap;
