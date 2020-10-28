@@ -31,12 +31,11 @@ public class TestExpectIt {
 			result = session.sendLine(String.format("cd %s; pwd", path), Matchers.contains(path.toString()));
 			Assertions.assertTrue(result.isSuccessful());
 
-			{
-				String now = dateTimeFormatter.format(LocalDateTime.now());
-				String command = String.format("keytool -genkeypair -alias test-%s -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore test.p12 -validity 3650", now);
-				result = session.sendLine(command, Matchers.contains("Enter keystore password:"));
-				Assertions.assertTrue(result.isSuccessful());
-			}
+			String now = dateTimeFormatter.format(LocalDateTime.now());
+			String alias = String.format("test-%s", now);
+			String command = String.format("keytool -genkeypair -alias %s -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore test.p12 -validity 3650", alias);
+			result = session.sendLine(command, Matchers.contains("Enter keystore password:"));
+			Assertions.assertTrue(result.isSuccessful());
 
 			{ // Multi-matcher sample:
 				Matcher<Result> matcher1 = Matchers.contains("Re-enter new password:");
@@ -71,7 +70,14 @@ public class TestExpectIt {
 			result = session.sendLine("yes", Matchers.regexp("Generating .* key pair and self-signed certificate"));
 			Assertions.assertTrue(result.isSuccessful());
 
-			System.out.println(result);
+			result = session.sendLine("keytool -list -keystore test.p12 | grep test", Matchers.contains("Enter keystore password:"));
+			Assertions.assertTrue(result.isSuccessful());
+
+			result = session.sendLine("secret", Matchers.contains(alias));
+			Assertions.assertTrue(result.isSuccessful());
+
+			System.out.printf("New cert alias: %s\n", alias);
+			System.out.printf("Last command output:\n%s", result.getInput().trim());
 		}
 	}
 }

@@ -3,8 +3,8 @@ package org.opentoolset.expect;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -44,8 +44,8 @@ public class ShellExecutor {
 	public static class Session implements Closeable {
 
 		private String shell;
-		private long duration;
-		private TimeUnit unit = TimeUnit.SECONDS;
+		private long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
+		private TimeUnit unit = TimeUnit.MILLISECONDS;
 
 		private Process process;
 		private Expect expect;
@@ -66,23 +66,39 @@ public class ShellExecutor {
 		}
 
 		public Result sendLine(String command) throws IOException {
-			Map<Matcher<?>, Result> resultMap = sendLine(command, duration, unit);
+			Map<Matcher<?>, Result> resultMap = sendLine(command, this.duration, this.unit);
 			return resultMap.values().iterator().next();
 		}
 
 		public Result sendLine(String command, Matcher<?> matcher) throws IOException {
-			Map<Matcher<?>, Result> resultMap = sendLine(command, duration, unit, matcher);
+			Map<Matcher<?>, Result> resultMap = sendLine(command, this.duration, this.unit, matcher);
 			return resultMap.values().iterator().next();
 		}
 
 		public Map<Matcher<?>, Result> sendLine(String command, Matcher<?>... matchers) throws IOException {
-			return sendLine(command, duration, unit, matchers);
+			return sendLine(command, this.duration, this.unit, matchers);
 		}
 
 		public Map<Matcher<?>, Result> sendLine(String command, long duration, TimeUnit timeUnit, Matcher<?>... matchers) throws IOException {
 			this.expect.sendLine(command);
+			Map<Matcher<?>, Result> resultMap = expect(duration, timeUnit, matchers);
+			return resultMap;
+		}
 
-			Map<Matcher<?>, Result> resultMap = new HashMap<>();
+		@Override
+		public void close() throws IOException {
+			try {
+				this.process.waitFor(1, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+			}
+			this.process.destroy();
+			this.expect.close();
+		}
+
+		// ---
+
+		private Map<Matcher<?>, Result> expect(long duration, TimeUnit timeUnit, Matcher<?>... matchers) throws IOException {
+			Map<Matcher<?>, Result> resultMap = new TreeMap<>((key1, key2) -> key1 == key2 ? 0 : 1); // Utilization of object references of keys is enforced in the map operations throug using TreeMap with Comparator like here.
 			if (matchers.length > 0) {
 				resultMap.putAll(Arrays.stream(matchers).collect(Collectors.toMap(matcher -> matcher, matcher -> {
 					try {
@@ -95,18 +111,7 @@ public class ShellExecutor {
 				Matcher<Result> matcher = Matchers.eof();
 				resultMap.put(matcher, this.expect.withTimeout(duration, timeUnit).expect(matcher));
 			}
-
 			return resultMap;
-		}
-
-		@Override
-		public void close() throws IOException {
-			try {
-				this.process.waitFor(1, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-			}
-			this.process.destroy();
-			this.expect.close();
 		}
 	}
 }
