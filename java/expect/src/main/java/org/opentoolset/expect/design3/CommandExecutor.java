@@ -1,7 +1,9 @@
-package org.opentoolset.expect;
+package org.opentoolset.expect.design3;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -14,54 +16,69 @@ import net.sf.expectit.Result;
 import net.sf.expectit.matcher.Matcher;
 import net.sf.expectit.matcher.Matchers;
 
-public class ShellExecutor {
+public class CommandExecutor {
 
 	public static class SessionBuilder {
 
-		private Session session = new Session();
+		protected OutputStream outputStream;
+		protected InputStream inputStream;
+		protected InputStream errorStream;
+		protected long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
+		protected TimeUnit unit = TimeUnit.MILLISECONDS;
 
-		public SessionBuilder() {
-			this.session = new Session();
+		public SessionBuilder withOutputStream(OutputStream outputStream) {
+			this.outputStream = outputStream;
+			return this;
 		}
 
-		public SessionBuilder withShell(String shell) {
-			this.session.shell = shell;
+		public SessionBuilder withInputStream(InputStream inputStream) {
+			this.inputStream = inputStream;
+			return this;
+		}
+
+		public SessionBuilder withErrorStream(InputStream errorStream) {
+			this.errorStream = errorStream;
 			return this;
 		}
 
 		public SessionBuilder withDefaultTimeout(long duration, TimeUnit unit) {
-			this.session.duration = duration;
-			this.session.unit = unit;
+			this.duration = duration;
+			this.unit = unit;
 			return this;
 		}
 
 		public Session create() throws IOException {
-			this.session.create();
+			Session session = new Session();
+			prepare(session);
 			return session;
+		}
+
+		protected void prepare(Session session) throws IOException {
+			session.outputStream = this.outputStream;
+			session.inputStream = this.inputStream;
+			session.errorStream = this.errorStream;
+			session.duration = this.duration;
+			session.unit = this.unit;
+			session.create();
 		}
 	}
 
 	public static class Session implements Closeable {
 
-		private String shell = "/bin/sh";
-		private long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
-		private TimeUnit unit = TimeUnit.MILLISECONDS;
+		protected OutputStream outputStream;
+		protected InputStream inputStream;
+		protected InputStream errorStream;
+		protected long duration;
+		protected TimeUnit unit;
 
-		private Process process;
-		private Expect expect;
+		protected Expect expect;
 
-		private Session() {
-		}
-
-		private void create() throws IOException {
-			this.process = new ProcessBuilder(this.shell).start();
-
+		protected void create() throws IOException {
 			ExpectBuilder expectBuilder = new ExpectBuilder();
-			expectBuilder.withOutput(this.process.getOutputStream());
-			expectBuilder.withInputs(this.process.getInputStream(), this.process.getErrorStream());
+			expectBuilder.withOutput(this.outputStream);
+			expectBuilder.withInputs(this.inputStream, this.errorStream);
 			expectBuilder.withCombineInputs(true);
 			expectBuilder.withTimeout(this.duration, this.unit);
-
 			this.expect = expectBuilder.build();
 		}
 
@@ -87,11 +104,6 @@ public class ShellExecutor {
 
 		@Override
 		public void close() throws IOException {
-			try {
-				this.process.waitFor(1, TimeUnit.SECONDS);
-			} catch (InterruptedException e) {
-			}
-			this.process.destroy();
 			this.expect.close();
 		}
 

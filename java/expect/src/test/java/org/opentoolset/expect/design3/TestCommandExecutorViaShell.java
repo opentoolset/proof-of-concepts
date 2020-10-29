@@ -1,4 +1,4 @@
-package org.opentoolset.expect;
+package org.opentoolset.expect.design3;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -6,35 +6,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
-import org.opentoolset.expect.ShellExecutor.SessionBuilder;
+import org.opentoolset.expect.AbstractTest;
 
 import net.sf.expectit.Result;
 import net.sf.expectit.matcher.Matcher;
 import net.sf.expectit.matcher.Matchers;
 
-public class TestExpectIt {
+public class TestCommandExecutorViaShell extends AbstractTest {
 
 	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
-	@BeforeEach
-	public void before(TestInfo testInfo) {
-		System.out.printf("---\nExecuting: %s\n---\n", testInfo.getTestMethod().orElseThrow().getName());
-	}
-
-	@AfterEach
-	public void after(TestInfo testInfo) {
-		System.out.printf("---\nFinished: %s\n---\n", testInfo.getTestMethod().orElseThrow().getName());
-	}
-
 	@Test
-	public void testShellExecutorExecutingSingleCommand() throws Exception {
-		SessionBuilder sessionBuilder = new ShellExecutor.SessionBuilder();
-		try (ShellExecutor.Session session = sessionBuilder.create()) {
+	public void testExecutingSingleCommand() throws Exception {
+		CommandExecutorViaShell.SessionBuilder sessionBuilder = new CommandExecutorViaShell.SessionBuilder();
+		try (CommandExecutorViaShell.Session session = sessionBuilder.create()) {
 			Result result = session.sendLine("ls -la");
 			Assertions.assertTrue(result.isSuccessful());
 			System.out.println(result.getInput());
@@ -42,11 +29,11 @@ public class TestExpectIt {
 	}
 
 	@Test
-	public void testShellExecutorManagingJavaKeystore() throws Exception {
-		SessionBuilder sessionBuilder = new ShellExecutor.SessionBuilder();
+	public void testManagingJavaKeystore() throws Exception {
+		CommandExecutorViaShell.SessionBuilder sessionBuilder = new CommandExecutorViaShell.SessionBuilder();
 		sessionBuilder.withShell("/bin/sh");
 		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
-		try (ShellExecutor.Session session = sessionBuilder.create()) {
+		try (CommandExecutorViaShell.Session session = sessionBuilder.create()) {
 			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
 			Result result;
 			result = session.sendLine(String.format("mkdir -pv %s; pwd", path));
