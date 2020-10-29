@@ -3,7 +3,7 @@ package org.opentoolset.expect.design3;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class CommandExecutorViaShell {
+public class ShellCommandExecutor {
 
 	public static class SessionBuilder extends CommandExecutor.SessionBuilder {
 

@@ -1,5 +1,6 @@
 package org.opentoolset.expect.design3;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -7,33 +8,27 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.opentoolset.expect.AbstractTest;
 
 import net.sf.expectit.Result;
 import net.sf.expectit.matcher.Matcher;
 import net.sf.expectit.matcher.Matchers;
 
-public class TestCommandExecutorViaShell extends AbstractTest {
+public class AbstractTestCommandExecutor extends AbstractTest {
 
-	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
-	@Test
-	public void testExecutingSingleCommand() throws Exception {
-		CommandExecutorViaShell.SessionBuilder sessionBuilder = new CommandExecutorViaShell.SessionBuilder();
-		try (CommandExecutorViaShell.Session session = sessionBuilder.create()) {
+	protected void testExecutingSingleCommand(CommandExecutor.SessionBuilder sessionBuilder) throws IOException {
+		try (CommandExecutor.Session session = sessionBuilder.create()) {
 			Result result = session.sendLine("ls -la");
 			Assertions.assertTrue(result.isSuccessful());
 			System.out.println(result.getInput());
 		}
 	}
 
-	@Test
-	public void testManagingJavaKeystore() throws Exception {
-		CommandExecutorViaShell.SessionBuilder sessionBuilder = new CommandExecutorViaShell.SessionBuilder();
-		sessionBuilder.withShell("/bin/sh");
+	protected void testManagingJavaKeystore(CommandExecutor.SessionBuilder sessionBuilder) throws IOException {
 		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
-		try (CommandExecutorViaShell.Session session = sessionBuilder.create()) {
+		try (CommandExecutor.Session session = sessionBuilder.create()) {
 			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
 			Result result;
 			result = session.sendLine(String.format("mkdir -pv %s; pwd", path));
