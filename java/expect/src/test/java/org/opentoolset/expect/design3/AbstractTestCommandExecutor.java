@@ -18,69 +18,128 @@ public class AbstractTestCommandExecutor extends AbstractTest {
 	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
 	protected void testExecutingSingleCommand(CommandExecutor.SessionCreator sessionBuilder) throws Exception {
+		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
 		try (CommandExecutor.Session session = sessionBuilder.create()) {
-			Result result = session.sendLine("ls -la");
+			session.sendLine("ls -la");
+			Result result = session.getResult();
 			Assertions.assertTrue(result.isSuccessful());
 			System.out.println(result.getInput());
 		}
 	}
 
 	protected void testManagingJavaKeystore(CommandExecutor.SessionCreator sessionBuilder) throws Exception {
-		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
 		try (CommandExecutor.Session session = sessionBuilder.create()) {
-			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
+			String command;
 			Result result;
-			result = session.sendLine(String.format("mkdir -pv %s; pwd", path));
-			result = session.sendLine(String.format("cd %s; pwd", path), Matchers.contains(path.toString()));
+
+			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
+			command = String.format("mkdir -pv %s; echo $?", path);
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.exact("0\n"));
+			System.out.println(result.getInput());
+			Assertions.assertTrue(result.isSuccessful());
+
+			command = String.format("cd %s; pwd", path);
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains(path.toString()));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
 			String now = dateTimeFormatter.format(LocalDateTime.now());
 			String alias = String.format("test-%s", now);
-			String command = String.format("keytool -genkeypair -alias %s -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore test.p12 -validity 3650", alias);
-			result = session.sendLine(command, Matchers.contains("Enter keystore password:"));
+			command = String.format("keytool -genkeypair -alias %s -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore test.p12 -validity 3650", alias);
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("Enter keystore password:"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			{ // Multi-matcher sample:
+			command = "secret";
+			session.sendLine(command);
+			System.err.println(command);
+			{
 				Matcher<Result> matcher1 = Matchers.contains("Re-enter new password:");
 				Matcher<Result> matcher2 = Matchers.contains("What is your first and last name?");
-				Map<Matcher<?>, Result> results = session.sendLine("secret", matcher1, matcher2);
+				Map<Matcher<?>, Result> results = session.expect(matcher1, matcher2);
 				if (results.get(matcher1).isSuccessful()) {
-					result = session.sendLine("secret", matcher2);
+					result = results.get(matcher1);
+					System.out.println(result.getInput());
 					Assertions.assertTrue(result.isSuccessful());
+
+					session.sendLine(command);
+					System.err.println(command);
+					result = session.expect(matcher2);
 				} else if (results.get(matcher2).isSuccessful()) {
-					Assertions.assertTrue(result.isSuccessful());
+					result = results.get(matcher2);
 				}
 			}
-
-			result = session.sendLine("name-1", Matchers.contains("What is the name of your organizational unit?"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("unit-1", Matchers.contains("What is the name of your organization?"));
+			command = "name-1";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("What is the name of your organizational unit?"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("org-1", Matchers.contains("What is the name of your City or Locality?"));
+			command = "unit-1";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("What is the name of your organization?"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("Ankara", Matchers.contains("What is the name of your State or Province?"));
+			command = "org-1";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("What is the name of your City or Locality?"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("Turkey", Matchers.contains("What is the two-letter country code for this unit?"));
+			command = "Ankara";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("What is the name of your State or Province?"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("TR", Matchers.regexp("Is .* correct"));
+			command = "Turkey";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("What is the two-letter country code for this unit?"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("yes", Matchers.regexp("Generating .* key pair and self-signed certificate"));
+			command = "TR";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.regexp("Is .* correct"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("keytool -list -keystore test.p12 | grep test", Matchers.contains("Enter keystore password:"));
+			command = "yes";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.regexp("Generating .* key pair and self-signed certificate"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			result = session.sendLine("secret", Matchers.contains(alias));
+			command = "keytool -list -keystore test.p12 | grep test";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains("Enter keystore password:"));
+			System.out.println(result.getInput());
 			Assertions.assertTrue(result.isSuccessful());
 
-			System.out.printf("New cert alias: %s\n", alias);
-			System.out.printf("Last command output:\n%s\n", result.getInput().trim());
+			command = "secret";
+			session.sendLine(command);
+			System.err.println(command);
+			result = session.expect(Matchers.contains(alias));
+			System.out.println(result.getInput());
+			Assertions.assertTrue(result.isSuccessful());
 		}
 	}
 }

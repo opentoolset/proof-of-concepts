@@ -11,6 +11,7 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 	public void testExecutingSingleCommand() throws Exception {
 		Process process = createProcess();
 		CommandExecutor.SessionCreator sessionCreator = createSessionBuilder(process);
+		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
 		testExecutingSingleCommand(sessionCreator);
 		closeProcess(process);
 	}

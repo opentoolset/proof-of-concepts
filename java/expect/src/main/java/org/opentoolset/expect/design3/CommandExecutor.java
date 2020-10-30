@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import net.sf.expectit.Expect;
@@ -72,38 +74,51 @@ public class CommandExecutor {
 
 		protected Expect expect;
 
-		protected void create() throws IOException {
-			ExpectBuilder expectBuilder = new ExpectBuilder();
-			expectBuilder.withOutput(this.outputStream);
-			expectBuilder.withInputs(this.inputStreams);
-			// expectBuilder.withCombineInputs(true);
-			expectBuilder.withTimeout(this.duration, this.unit);
+		private final Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.anyString();
+		// private final Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.regexp(Pattern.compile("^.*$", Pattern.MULTILINE | Pattern.DOTALL));
 
-			if (this.inputFilters != null && this.inputFilters.size() > 0) {
-				Filter[] moreInputFilters = this.inputFilters.size() > 1 ? this.inputFilters.subList(1, this.inputFilters.size()).toArray(new Filter[] { }) : new Filter[0];
-				expectBuilder.withInputFilters(this.inputFilters.get(0), moreInputFilters);
-			}
-
-			this.expect = expectBuilder.build();
+		public Expect getExpect() {
+			return this.expect;
 		}
 
-		public Result sendLine(String command) throws IOException {
-			Map<Matcher<?>, Result> resultMap = sendLine(command, this.duration, this.unit);
-			return resultMap.values().iterator().next();
+		public Result getResult() throws IOException {
+			Matcher<Result> matcher = this.defaultMatcherProvider.get();
+			Result result = this.expect.expect(matcher);
+			return result;
 		}
 
-		public Result sendLine(String command, Matcher<?> matcher) throws IOException {
-			Map<Matcher<?>, Result> resultMap = sendLine(command, this.duration, this.unit, matcher);
-			return resultMap.values().iterator().next();
-		}
-
-		public Map<Matcher<?>, Result> sendLine(String command, Matcher<?>... matchers) throws IOException {
-			return sendLine(command, this.duration, this.unit, matchers);
-		}
-
-		public Map<Matcher<?>, Result> sendLine(String command, long duration, TimeUnit timeUnit, Matcher<?>... matchers) throws IOException {
+		public void sendLine(String command) throws IOException {
 			this.expect.sendLine(command);
-			Map<Matcher<?>, Result> resultMap = expect(duration, timeUnit, matchers);
+		}
+
+		public Result expect(Matcher<?> matcher) throws IOException {
+			Result result = expect(this.duration, this.unit, matcher);
+			return result;
+		}
+
+		public Map<Matcher<?>, Result> expect(Matcher<?>... matchers) throws IOException {
+			return expect(this.duration, this.unit, matchers);
+		}
+
+		public Result expect(long duration, TimeUnit timeUnit, Matcher<?> matcher) {
+			try {
+				Result result = this.expect.withTimeout(duration, timeUnit).expect(matcher);
+				return result;
+			} catch (IOException e) {
+				return null;
+			}
+		}
+
+		public Map<Matcher<?>, Result> expect(long duration, TimeUnit timeUnit, Matcher<?>... matchers) throws IOException {
+			Map<Matcher<?>, Result> resultMap = new TreeMap<>((key1, key2) -> key1 == key2 ? 0 : 1); // Utilization of object references of keys is enforced in the map operations throug using TreeMap with Comparator like here.
+			if (matchers.length > 0) {
+				Function<Matcher<?>, Result> valueMapper = matcher -> expect(duration, timeUnit, matcher);
+				resultMap.putAll(Arrays.stream(matchers).collect(Collectors.toMap(matcher -> matcher, valueMapper)));
+			} else {
+				Matcher<Result> matcher = this.defaultMatcherProvider.get();
+				Result result = expect(duration, timeUnit, matcher);
+				resultMap.put(matcher, result);
+			}
 			return resultMap;
 		}
 
@@ -114,22 +129,19 @@ public class CommandExecutor {
 
 		// ---
 
-		private Map<Matcher<?>, Result> expect(long duration, TimeUnit timeUnit, Matcher<?>... matchers) throws IOException {
-			Map<Matcher<?>, Result> resultMap = new TreeMap<>((key1, key2) -> key1 == key2 ? 0 : 1); // Utilization of object references of keys is enforced in the map operations throug using TreeMap with Comparator like here.
-			if (matchers.length > 0) {
-				resultMap.putAll(Arrays.stream(matchers).collect(Collectors.toMap(matcher -> matcher, matcher -> {
-					try {
-						return this.expect.withTimeout(duration, timeUnit).expect(matcher);
-					} catch (IOException e) {
-						return null;
-					}
-				})));
-			} else {
-				Matcher<Result> matcher = Matchers.regexp("$");
-				Result result = this.expect.withTimeout(duration, timeUnit).expect(matcher);
-				resultMap.put(matcher, result);
+		protected void create() throws IOException {
+			ExpectBuilder expectBuilder = new ExpectBuilder();
+			expectBuilder.withOutput(this.outputStream);
+			expectBuilder.withInputs(this.inputStreams);
+			expectBuilder.withCombineInputs(true);
+			expectBuilder.withTimeout(this.duration, this.unit);
+
+			if (this.inputFilters != null && this.inputFilters.size() > 0) {
+				Filter[] moreInputFilters = this.inputFilters.size() > 1 ? this.inputFilters.subList(1, this.inputFilters.size()).toArray(new Filter[] { }) : new Filter[0];
+				expectBuilder.withInputFilters(this.inputFilters.get(0), moreInputFilters);
 			}
-			return resultMap;
+
+			this.expect = expectBuilder.build();
 		}
 	}
 }
