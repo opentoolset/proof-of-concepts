@@ -10,17 +10,17 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 	@Test
 	public void testExecutingSingleCommand() throws Exception {
 		Process process = createProcess();
-		CommandExecutor.SessionBuilder sessionBuilder = createSessionBuilder(process);
-		testExecutingSingleCommand(sessionBuilder);
+		CommandExecutor.SessionCreator sessionCreator = createSessionBuilder(process);
+		testExecutingSingleCommand(sessionCreator);
 		closeProcess(process);
 	}
 
 	@Test
 	public void testManagingJavaKeystore() throws Exception {
 		Process process = createProcess();
-		CommandExecutor.SessionBuilder sessionBuilder = createSessionBuilder(process);
-		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
-		testManagingJavaKeystore(sessionBuilder);
+		CommandExecutor.SessionCreator sessionCreator = createSessionBuilder(process);
+		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
+		testManagingJavaKeystore(sessionCreator);
 		closeProcess(process);
 	}
 
@@ -39,8 +39,8 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 		return process;
 	}
 
-	private CommandExecutor.SessionBuilder createSessionBuilder(Process process) {
-		CommandExecutor.SessionBuilder sessionBuilder = new CommandExecutor.SessionBuilder();
+	private CommandExecutor.SessionCreator createSessionBuilder(Process process) {
+		CommandExecutor.SessionCreator sessionBuilder = new CommandExecutor.SessionCreator();
 		sessionBuilder.withOutputStream(process.getOutputStream());
 		sessionBuilder.withInputStream(process.getInputStream());
 		sessionBuilder.withErrorStream(process.getErrorStream());

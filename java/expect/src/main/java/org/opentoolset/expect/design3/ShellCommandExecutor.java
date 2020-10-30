@@ -5,23 +5,29 @@ import java.util.concurrent.TimeUnit;
 
 public class ShellCommandExecutor {
 
-	public static class SessionBuilder extends CommandExecutor.SessionBuilder {
+	public static class SessionCreator extends CommandExecutor.SessionCreator {
 
-		private Session session = new Session();
+		private Session session = getNewSession();
 
-		public SessionBuilder withShell(String shell) {
+		public SessionCreator withShell(String shell) {
 			this.session.shell = shell;
 			return this;
 		}
 
 		@Override
 		public Session create() throws IOException {
-			this.session.process = new ProcessBuilder(this.session.shell).start();
-			withOutputStream(this.session.process.getOutputStream());
-			withInputStream(this.session.process.getInputStream());
-			withErrorStream(this.session.process.getErrorStream());
-			prepare(session);
+			Process process = this.session.startShellProcess();
+			withOutputStream(process.getOutputStream());
+			withInputStream(process.getInputStream());
+			withErrorStream(process.getErrorStream());
+
+			this.session.create();
 			return this.session;
+		}
+
+		@Override
+		protected Session getNewSession() {
+			return new Session();
 		}
 	}
 
@@ -38,6 +44,11 @@ public class ShellCommandExecutor {
 			} catch (InterruptedException e) {
 			}
 			this.process.destroy();
+		}
+
+		private Process startShellProcess() throws IOException {
+			this.process = new ProcessBuilder(this.shell).start();
+			return this.process;
 		}
 	}
 }

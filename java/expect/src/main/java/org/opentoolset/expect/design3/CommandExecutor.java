@@ -4,7 +4,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -13,53 +15,51 @@ import java.util.stream.Collectors;
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
 import net.sf.expectit.Result;
+import net.sf.expectit.filter.Filter;
 import net.sf.expectit.matcher.Matcher;
 import net.sf.expectit.matcher.Matchers;
 
 public class CommandExecutor {
 
-	public static class SessionBuilder {
+	public static class SessionCreator {
 
-		protected OutputStream outputStream;
-		protected InputStream inputStream;
-		protected InputStream errorStream;
-		protected long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
-		protected TimeUnit unit = TimeUnit.MILLISECONDS;
+		private Session session = getNewSession();
 
-		public SessionBuilder withOutputStream(OutputStream outputStream) {
-			this.outputStream = outputStream;
+		public SessionCreator withOutputStream(OutputStream outputStream) {
+			this.session.outputStream = outputStream;
 			return this;
 		}
 
-		public SessionBuilder withInputStream(InputStream inputStream) {
-			this.inputStream = inputStream;
+		public SessionCreator withInputStream(InputStream inputStream) {
+			this.session.inputStream = inputStream;
 			return this;
 		}
 
-		public SessionBuilder withErrorStream(InputStream errorStream) {
-			this.errorStream = errorStream;
+		public SessionCreator withErrorStream(InputStream errorStream) {
+			this.session.errorStream = errorStream;
 			return this;
 		}
 
-		public SessionBuilder withDefaultTimeout(long duration, TimeUnit unit) {
-			this.duration = duration;
-			this.unit = unit;
+		public SessionCreator withDefaultTimeout(long duration, TimeUnit unit) {
+			this.session.duration = duration;
+			this.session.unit = unit;
 			return this;
 		}
 
-		public Session create() throws IOException {
-			Session session = new Session();
-			prepare(session);
+		public SessionCreator withInputFilters(Filter filter, Filter... moreFilters) {
+			this.session.inputFilters = new ArrayList<>();
+			this.session.inputFilters.add(filter);
+			this.session.inputFilters.addAll(Arrays.asList(moreFilters));
+			return this;
+		}
+
+		public Session create() throws Exception {
+			this.session.create();
 			return session;
 		}
 
-		protected void prepare(Session session) throws IOException {
-			session.outputStream = this.outputStream;
-			session.inputStream = this.inputStream;
-			session.errorStream = this.errorStream;
-			session.duration = this.duration;
-			session.unit = this.unit;
-			session.create();
+		protected Session getNewSession() {
+			return new Session();
 		}
 	}
 
@@ -68,8 +68,9 @@ public class CommandExecutor {
 		protected OutputStream outputStream;
 		protected InputStream inputStream;
 		protected InputStream errorStream;
-		protected long duration;
-		protected TimeUnit unit;
+		protected long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
+		protected TimeUnit unit = TimeUnit.MILLISECONDS;
+		private List<Filter> inputFilters;
 
 		protected Expect expect;
 
@@ -79,6 +80,12 @@ public class CommandExecutor {
 			expectBuilder.withInputs(this.inputStream, this.errorStream);
 			expectBuilder.withCombineInputs(true);
 			expectBuilder.withTimeout(this.duration, this.unit);
+
+			if (this.inputFilters.size() > 0) {
+				Filter[] moreInputFilters = this.inputFilters.size() > 1 ? this.inputFilters.subList(1, this.inputFilters.size()).toArray(new Filter[] { }) : new Filter[0];
+				expectBuilder.withInputFilters(this.inputFilters.get(0), moreInputFilters);
+			}
+
 			this.expect = expectBuilder.build();
 		}
 

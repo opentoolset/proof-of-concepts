@@ -1,6 +1,5 @@
 package org.opentoolset.expect.design3;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +17,7 @@ public class AbstractTestCommandExecutor extends AbstractTest {
 
 	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
-	protected void testExecutingSingleCommand(CommandExecutor.SessionBuilder sessionBuilder) throws IOException {
+	protected void testExecutingSingleCommand(CommandExecutor.SessionCreator sessionBuilder) throws Exception {
 		try (CommandExecutor.Session session = sessionBuilder.create()) {
 			Result result = session.sendLine("ls -la");
 			Assertions.assertTrue(result.isSuccessful());
@@ -26,7 +25,7 @@ public class AbstractTestCommandExecutor extends AbstractTest {
 		}
 	}
 
-	protected void testManagingJavaKeystore(CommandExecutor.SessionBuilder sessionBuilder) throws IOException {
+	protected void testManagingJavaKeystore(CommandExecutor.SessionCreator sessionBuilder) throws Exception {
 		sessionBuilder.withDefaultTimeout(1, TimeUnit.SECONDS);
 		try (CommandExecutor.Session session = sessionBuilder.create()) {
 			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
