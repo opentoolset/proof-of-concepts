@@ -77,7 +77,7 @@ public class TestShellExecutor extends AbstractTest {
 
 					session.sendLine(command);
 					System.err.println(command);
-					result = session.expect(matcher1);
+					result = session.expect(matcher2);
 				} else if (results.get(matcher2).isSuccessful()) {
 					result = results.get(matcher2);
 				}
