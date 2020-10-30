@@ -17,7 +17,7 @@ public class SshCommandExecutorWithNetSchmizzSshj {
 
 	public static class SessionCreator extends CommandExecutor.SessionCreator {
 
-		private Session session = getNewSession();
+		private Session session = buildSession();
 
 		public SessionCreator withHostname(String hostname) {
 			this.session.hostname = hostname;
@@ -42,9 +42,8 @@ public class SshCommandExecutorWithNetSchmizzSshj {
 		@Override
 		public Session create() throws IOException, CompositeUserAuthException {
 			Shell sshShell = this.session.startShell();
-			withOutputStream(sshShell.getOutputStream());
-			withInputStream(sshShell.getInputStream());
-			withErrorStream(sshShell.getErrorStream());
+			withOutput(sshShell.getOutputStream());
+			withInputs(sshShell.getInputStream(), sshShell.getErrorStream());
 			withInputFilters(Filters.removeColors(), Filters.removeNonPrintable());
 
 			this.session.create();
@@ -52,7 +51,7 @@ public class SshCommandExecutorWithNetSchmizzSshj {
 		}
 
 		@Override
-		protected Session getNewSession() {
+		protected Session buildSession() {
 			return new Session();
 		}
 	}

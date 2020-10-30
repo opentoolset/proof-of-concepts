@@ -41,9 +41,8 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 
 	private CommandExecutor.SessionCreator createSessionBuilder(Process process) {
 		CommandExecutor.SessionCreator sessionBuilder = new CommandExecutor.SessionCreator();
-		sessionBuilder.withOutputStream(process.getOutputStream());
-		sessionBuilder.withInputStream(process.getInputStream());
-		sessionBuilder.withErrorStream(process.getErrorStream());
+		sessionBuilder.withOutput(process.getOutputStream());
+		sessionBuilder.withInputs(process.getInputStream(), process.getErrorStream());
 		return sessionBuilder;
 	}
 }

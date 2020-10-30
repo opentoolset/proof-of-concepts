@@ -7,7 +7,7 @@ public class ShellCommandExecutor {
 
 	public static class SessionCreator extends CommandExecutor.SessionCreator {
 
-		private Session session = getNewSession();
+		private Session session = buildSession();
 
 		public SessionCreator withShell(String shell) {
 			this.session.shell = shell;
@@ -17,16 +17,15 @@ public class ShellCommandExecutor {
 		@Override
 		public Session create() throws IOException {
 			Process process = this.session.startShellProcess();
-			withOutputStream(process.getOutputStream());
-			withInputStream(process.getInputStream());
-			withErrorStream(process.getErrorStream());
+			withOutput(process.getOutputStream());
+			withInputs(process.getInputStream(), process.getErrorStream());
 
 			this.session.create();
 			return this.session;
 		}
 
 		@Override
-		protected Session getNewSession() {
+		protected Session buildSession() {
 			return new Session();
 		}
 	}

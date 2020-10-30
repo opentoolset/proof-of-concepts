@@ -23,20 +23,15 @@ public class CommandExecutor {
 
 	public static class SessionCreator {
 
-		private Session session = getNewSession();
+		protected Session session = buildSession();
 
-		public SessionCreator withOutputStream(OutputStream outputStream) {
+		public SessionCreator withOutput(OutputStream outputStream) {
 			this.session.outputStream = outputStream;
 			return this;
 		}
 
-		public SessionCreator withInputStream(InputStream inputStream) {
-			this.session.inputStream = inputStream;
-			return this;
-		}
-
-		public SessionCreator withErrorStream(InputStream errorStream) {
-			this.session.errorStream = errorStream;
+		public SessionCreator withInputs(InputStream... inputStreams) {
+			this.session.inputStreams = inputStreams;
 			return this;
 		}
 
@@ -58,16 +53,19 @@ public class CommandExecutor {
 			return session;
 		}
 
-		protected Session getNewSession() {
+		protected Session buildSession() {
 			return new Session();
+		}
+
+		protected Session getSession() {
+			return session;
 		}
 	}
 
 	public static class Session implements Closeable {
 
 		protected OutputStream outputStream;
-		protected InputStream inputStream;
-		protected InputStream errorStream;
+		protected InputStream[] inputStreams;
 		protected long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
 		protected TimeUnit unit = TimeUnit.MILLISECONDS;
 		private List<Filter> inputFilters;
@@ -77,11 +75,11 @@ public class CommandExecutor {
 		protected void create() throws IOException {
 			ExpectBuilder expectBuilder = new ExpectBuilder();
 			expectBuilder.withOutput(this.outputStream);
-			expectBuilder.withInputs(this.inputStream, this.errorStream);
-			expectBuilder.withCombineInputs(true);
+			expectBuilder.withInputs(this.inputStreams);
+			// expectBuilder.withCombineInputs(true);
 			expectBuilder.withTimeout(this.duration, this.unit);
 
-			if (this.inputFilters.size() > 0) {
+			if (this.inputFilters != null && this.inputFilters.size() > 0) {
 				Filter[] moreInputFilters = this.inputFilters.size() > 1 ? this.inputFilters.subList(1, this.inputFilters.size()).toArray(new Filter[] { }) : new Filter[0];
 				expectBuilder.withInputFilters(this.inputFilters.get(0), moreInputFilters);
 			}
@@ -127,8 +125,9 @@ public class CommandExecutor {
 					}
 				})));
 			} else {
-				Matcher<Result> matcher = Matchers.regexp("\n$");
-				resultMap.put(matcher, this.expect.withTimeout(duration, timeUnit).expect(matcher));
+				Matcher<Result> matcher = Matchers.regexp("$");
+				Result result = this.expect.withTimeout(duration, timeUnit).expect(matcher);
+				resultMap.put(matcher, result);
 			}
 			return resultMap;
 		}
