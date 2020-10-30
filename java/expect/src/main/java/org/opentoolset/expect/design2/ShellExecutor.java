@@ -51,18 +51,6 @@ public class ShellExecutor {
 		private Process process;
 		private Expect expect;
 
-		private void create() throws IOException {
-			this.process = new ProcessBuilder(this.shell).start();
-
-			ExpectBuilder expectBuilder = new ExpectBuilder();
-			expectBuilder.withOutput(this.process.getOutputStream());
-			expectBuilder.withInputs(this.process.getInputStream(), this.process.getErrorStream());
-			expectBuilder.withCombineInputs(true);
-			expectBuilder.withTimeout(this.duration, this.unit);
-
-			this.expect = expectBuilder.build();
-		}
-
 		public Expect getExpect() {
 			return this.expect;
 		}
@@ -85,7 +73,7 @@ public class ShellExecutor {
 			return expect(this.duration, this.unit, matchers);
 		}
 
-		private Result expect(long duration, TimeUnit timeUnit, Matcher<?> matcher) {
+		public Result expect(long duration, TimeUnit timeUnit, Matcher<?> matcher) {
 			try {
 				Result result = this.expect.withTimeout(duration, timeUnit).expect(matcher);
 				return result;
@@ -116,6 +104,18 @@ public class ShellExecutor {
 			} catch (InterruptedException e) {
 			}
 			this.process.destroy();
+		}
+		
+		private void create() throws IOException {
+			this.process = new ProcessBuilder(this.shell).start();
+		
+			ExpectBuilder expectBuilder = new ExpectBuilder();
+			expectBuilder.withOutput(this.process.getOutputStream());
+			expectBuilder.withInputs(this.process.getInputStream(), this.process.getErrorStream());
+			expectBuilder.withCombineInputs(true);
+			expectBuilder.withTimeout(this.duration, this.unit);
+		
+			this.expect = expectBuilder.build();
 		}
 	}
 }
