@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import net.sf.expectit.Expect;
@@ -51,12 +52,16 @@ public class ShellExecutor {
 		private Process process;
 		private Expect expect;
 
+		private final Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.anyString();
+		// private final Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.regexp(Pattern.compile("^.*$", Pattern.MULTILINE | Pattern.DOTALL));
+
 		public Expect getExpect() {
 			return this.expect;
 		}
 
 		public Result getResult() throws IOException {
-			Result result = this.expect.expect(Matchers.anyString());
+			Matcher<Result> matcher = this.defaultMatcherProvider.get();
+			Result result = this.expect.expect(matcher);
 			return result;
 		}
 
@@ -88,8 +93,7 @@ public class ShellExecutor {
 				Function<Matcher<?>, Result> valueMapper = matcher -> expect(duration, timeUnit, matcher);
 				resultMap.putAll(Arrays.stream(matchers).collect(Collectors.toMap(matcher -> matcher, valueMapper)));
 			} else {
-				Matcher<Result> matcher = Matchers.anyString();
-				// Matcher<Result> matcher = Matchers.regexp(Pattern.compile("^.*$", Pattern.MULTILINE | Pattern.DOTALL));
+				Matcher<Result> matcher = this.defaultMatcherProvider.get();
 				Result result = expect(duration, timeUnit, matcher);
 				resultMap.put(matcher, result);
 			}
@@ -105,16 +109,16 @@ public class ShellExecutor {
 			}
 			this.process.destroy();
 		}
-		
+
 		private void create() throws IOException {
 			this.process = new ProcessBuilder(this.shell).start();
-		
+
 			ExpectBuilder expectBuilder = new ExpectBuilder();
 			expectBuilder.withOutput(this.process.getOutputStream());
 			expectBuilder.withInputs(this.process.getInputStream(), this.process.getErrorStream());
 			expectBuilder.withCombineInputs(true);
 			expectBuilder.withTimeout(this.duration, this.unit);
-		
+
 			this.expect = expectBuilder.build();
 		}
 	}
