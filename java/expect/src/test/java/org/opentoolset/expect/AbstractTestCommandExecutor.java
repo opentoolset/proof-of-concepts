@@ -1,4 +1,4 @@
-package org.opentoolset.expect.design2;
+package org.opentoolset.expect;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
-import org.opentoolset.expect.AbstractTest;
-import org.opentoolset.expect.design2.CommandExecutor;
 
 import net.sf.expectit.Result;
 import net.sf.expectit.interact.InteractBuilder;

@@ -1,4 +1,4 @@
-package org.opentoolset.expect.design2;
+package org.opentoolset.expect;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

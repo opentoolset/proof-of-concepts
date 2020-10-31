@@ -1,9 +1,8 @@
-package org.opentoolset.expect.design2;
+package org.opentoolset.expect;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-import org.opentoolset.expect.design2.SshCommandExecutorNetSchmizzSshj;
 
 /**
  * This has not been executed successfully yet
