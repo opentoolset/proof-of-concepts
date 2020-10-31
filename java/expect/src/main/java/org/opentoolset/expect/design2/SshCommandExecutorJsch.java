@@ -1,4 +1,4 @@
-package org.opentoolset.expect.design3;
+package org.opentoolset.expect.design2;
 
 import java.io.IOException;
 import java.util.Properties;

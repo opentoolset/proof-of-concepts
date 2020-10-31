@@ -1,4 +1,4 @@
-package org.opentoolset.expect.design2;
+package org.opentoolset.expect.design1;
 
 import java.io.Closeable;
 import java.io.IOException;

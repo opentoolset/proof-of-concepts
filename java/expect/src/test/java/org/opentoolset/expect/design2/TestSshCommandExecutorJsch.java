@@ -1,8 +1,9 @@
-package org.opentoolset.expect.design3;
+package org.opentoolset.expect.design2;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.opentoolset.expect.design2.SshCommandExecutorJsch;
 
 public class TestSshCommandExecutorJsch extends AbstractTestCommandExecutor {
 

@@ -1,4 +1,4 @@
-package org.opentoolset.expect.design3;
+package org.opentoolset.expect.design2;
 
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assertions;
 import org.opentoolset.expect.AbstractTest;
+import org.opentoolset.expect.design2.CommandExecutor;
 
 import net.sf.expectit.Result;
 import net.sf.expectit.interact.InteractBuilder;
@@ -61,7 +62,7 @@ public class AbstractTestCommandExecutor extends AbstractTest {
 			{
 				Matcher<Result> matcher1 = Matchers.contains("Re-enter new password:");
 				Matcher<Result> matcher2 = Matchers.contains("What is your first and last name?");
-				Map<Matcher<?>, Result> results = session.expect(matcher1, matcher2);
+				Map<Matcher<?>, Result> results = session.expectAsMap(matcher1, matcher2);
 				if (results.get(matcher1).isSuccessful()) {
 					result = results.get(matcher1);
 					Assertions.assertTrue(result.isSuccessful());
@@ -128,7 +129,7 @@ public class AbstractTestCommandExecutor extends AbstractTest {
 			String now = dateTimeFormatter.format(LocalDateTime.now());
 			session.sendLine("keytool -genkeypair -alias test-%s -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore test.p12 -validity 3650", now);
 
-			InteractBuilder interactBuilder = session.getExpect().interact();
+			InteractBuilder interactBuilder = session.interact();
 			{
 				interactBuilder.when(Matchers.contains("Enter keystore password:")).then(result -> session.sendLine("secret"));
 				interactBuilder.when(Matchers.contains("Re-enter new password:")).then(result -> session.sendLine("secret"));
