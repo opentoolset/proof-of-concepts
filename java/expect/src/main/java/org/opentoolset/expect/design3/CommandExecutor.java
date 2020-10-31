@@ -50,6 +50,22 @@ public class CommandExecutor {
 			return this;
 		}
 
+		public SessionCreator withDefaultMatcherProvider(Supplier<Matcher<Result>> defaultMatcherProvider) {
+			this.session.defaultMatcherProvider = defaultMatcherProvider;
+			return this;
+		}
+
+		public SessionCreator withEchoOutput(Appendable echoOutput) {
+			this.session.echoOutput = echoOutput;
+			return this;
+		}
+
+		public SessionCreator withEchoInputs(Appendable echoInput, Appendable... otherEchoInputs) {
+			this.session.echoInput = echoInput;
+			this.session.otherEchoInputs = otherEchoInputs;
+			return this;
+		}
+
 		public Session create() throws Exception {
 			this.session.create();
 			return session;
@@ -66,16 +82,21 @@ public class CommandExecutor {
 
 	public static class Session implements Closeable {
 
-		protected OutputStream outputStream;
-		protected InputStream[] inputStreams;
-		protected long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
-		protected TimeUnit unit = TimeUnit.MILLISECONDS;
+		private OutputStream outputStream;
+		private InputStream[] inputStreams = new InputStream[] { };
+		private long duration = ExpectBuilder.DEFAULT_TIMEOUT_MS;
+		private TimeUnit unit = TimeUnit.MILLISECONDS;
 		private List<Filter> inputFilters;
+
+		private Appendable echoOutput;
+		private Appendable echoInput;
+		private Appendable[] otherEchoInputs;
 
 		protected Expect expect;
 
-		private final Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.anyString();
-		// private final Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.regexp(Pattern.compile("^.*$", Pattern.MULTILINE | Pattern.DOTALL));
+		private Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.eof();
+		// protected Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.anyString();
+		// protected Supplier<Matcher<Result>> defaultMatcherProvider = () -> Matchers.regexp(Pattern.compile("^.*$", Pattern.MULTILINE | Pattern.DOTALL));
 
 		public Expect getExpect() {
 			return this.expect;
@@ -87,7 +108,8 @@ public class CommandExecutor {
 			return result;
 		}
 
-		public void sendLine(String command) throws IOException {
+		public void sendLine(String format, Object... args) throws IOException {
+			String command = String.format(format, args);
 			this.expect.sendLine(command);
 		}
 
@@ -102,7 +124,7 @@ public class CommandExecutor {
 
 		public Result expect(long duration, TimeUnit timeUnit, Matcher<?> matcher) {
 			try {
-				Result result = this.expect.withTimeout(duration, timeUnit).expect(matcher);
+				Result result = this.expect.expect(matcher);
 				return result;
 			} catch (IOException e) {
 				return null;
@@ -135,11 +157,13 @@ public class CommandExecutor {
 			expectBuilder.withInputs(this.inputStreams);
 			expectBuilder.withCombineInputs(true);
 			expectBuilder.withTimeout(this.duration, this.unit);
-
 			if (this.inputFilters != null && this.inputFilters.size() > 0) {
 				Filter[] moreInputFilters = this.inputFilters.size() > 1 ? this.inputFilters.subList(1, this.inputFilters.size()).toArray(new Filter[] { }) : new Filter[0];
 				expectBuilder.withInputFilters(this.inputFilters.get(0), moreInputFilters);
 			}
+
+			expectBuilder.withEchoOutput(this.echoOutput);
+			expectBuilder.withEchoInput(this.echoInput, this.otherEchoInputs);
 
 			this.expect = expectBuilder.build();
 		}

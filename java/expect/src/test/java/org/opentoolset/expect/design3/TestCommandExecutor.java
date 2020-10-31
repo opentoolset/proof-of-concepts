@@ -1,31 +1,87 @@
 package org.opentoolset.expect.design3;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.opentoolset.expect.design3.CommandExecutor.SessionCreator;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+
+import net.sf.expectit.filter.Filters;
+import net.sf.expectit.matcher.Matchers;
 
 public class TestCommandExecutor extends AbstractTestCommandExecutor {
 
 	@Test
-	public void testExecutingSingleCommand() throws Exception {
+	public void testExecutingCommandsOnLocalShell() throws Exception {
 		Process process = createProcess();
-		CommandExecutor.SessionCreator sessionCreator = createSessionBuilder(process);
-		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
-		testExecutingSingleCommand(sessionCreator);
+		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForLocalShell(process);
+		testExecutingCommands(sessionCreator);
 		closeProcess(process);
 	}
 
 	@Test
-	public void testManagingJavaKeystore() throws Exception {
+	public void testManagingJavaKeystoreOnLocalShell() throws Exception {
 		Process process = createProcess();
-		CommandExecutor.SessionCreator sessionCreator = createSessionBuilder(process);
-		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
+		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForLocalShell(process);
 		testManagingJavaKeystore(sessionCreator);
 		closeProcess(process);
 	}
 
+	@Test
+	public void testExecutingCommandsInSSHSession() throws Exception {
+		Session sshSession = openSSHSession();
+		Channel sshChannel = openSSHChannel(sshSession);
+		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForSSH(sshChannel);
+		testExecutingCommands(sessionCreator);
+		sshChannel.disconnect();
+		sshSession.disconnect();
+	}
+
+	@Test
+	public void testManagingJavaKeystoreInSSHSession() throws Exception {
+		Session sshSession = openSSHSession();
+		Channel sshChannel = openSSHChannel(sshSession);
+		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForSSH(sshChannel);
+		testManagingJavaKeystore(sessionCreator);
+		sshChannel.disconnect();
+		sshSession.disconnect();
+	}
+
 	// ---
+
+	private CommandExecutor.SessionCreator buildSessionCreatorForLocalShell(Process process) {
+		CommandExecutor.SessionCreator sessionCreator = new CommandExecutor.SessionCreator();
+		sessionCreator.withOutput(process.getOutputStream());
+		sessionCreator.withInputs(process.getInputStream(), process.getErrorStream());
+		sessionCreator.withDefaultMatcherProvider(() -> Matchers.regexp("\n$"));
+		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
+		sessionCreator.withEchoOutput(System.err);
+		sessionCreator.withEchoInputs(System.out);
+		return sessionCreator;
+	}
+
+	private SessionCreator buildSessionCreatorForSSH(Channel channel) throws IOException {
+		CommandExecutor.SessionCreator sessionCreator = new CommandExecutor.SessionCreator();
+		sessionCreator.withOutput(channel.getOutputStream());
+		sessionCreator.withInputs(channel.getInputStream(), channel.getExtInputStream());
+		sessionCreator.withInputFilters(Filters.removeColors(), Filters.removeNonPrintable());
+		sessionCreator.withDefaultMatcherProvider(() -> Matchers.regexp("\\$"));
+		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
+		sessionCreator.withEchoOutput(System.err);
+		sessionCreator.withEchoInputs(System.out);
+		return sessionCreator;
+	}
+
+	private Process createProcess() throws IOException {
+		Process process = new ProcessBuilder("/bin/sh").start();
+		return process;
+	}
 
 	private void closeProcess(Process process) {
 		try {
@@ -35,15 +91,21 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 		process.destroy();
 	}
 
-	private Process createProcess() throws IOException {
-		Process process = new ProcessBuilder("/bin/sh").start();
-		return process;
+	private Session openSSHSession() throws JSchException {
+		JSch jSch = new JSch();
+		jSch.addIdentity(System.getProperty("user.home") + "/.ssh/id_rsa");
+		Session sshSession = jSch.getSession(System.getProperty("user.name"), "localhost");
+
+		Properties config = new Properties();
+		config.put("StrictHostKeyChecking", "no");
+		sshSession.setConfig(config);
+		sshSession.connect();
+		return sshSession;
 	}
 
-	private CommandExecutor.SessionCreator createSessionBuilder(Process process) {
-		CommandExecutor.SessionCreator sessionBuilder = new CommandExecutor.SessionCreator();
-		sessionBuilder.withOutput(process.getOutputStream());
-		sessionBuilder.withInputs(process.getInputStream(), process.getErrorStream());
-		return sessionBuilder;
+	private Channel openSSHChannel(Session sshSession) throws JSchException {
+		Channel channel = sshSession.openChannel("shell");
+		channel.connect();
+		return channel;
 	}
 }

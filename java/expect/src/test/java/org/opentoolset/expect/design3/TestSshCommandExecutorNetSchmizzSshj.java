@@ -7,25 +7,27 @@ import org.junit.jupiter.api.Test;
 public class TestSshCommandExecutorNetSchmizzSshj extends AbstractTestCommandExecutor {
 
 	@Test
-	public void testExecutingSingleCommand() throws Exception {
-		SshCommandExecutorWithNetSchmizzSshj.SessionCreator sessionCreator = buildSessionCreator();
-		testExecutingSingleCommand(sessionCreator);
+	public void testExecutingCommands() throws Exception {
+		SshCommandExecutorNetSchmizzSshj.SessionCreator sessionCreator = buildSessionCreator();
+		testExecutingCommands(sessionCreator);
 	}
 
 	@Test
 	public void testManagingJavaKeystore() throws Exception {
-		SshCommandExecutorWithNetSchmizzSshj.SessionCreator sessionCreator = buildSessionCreator();
+		SshCommandExecutorNetSchmizzSshj.SessionCreator sessionCreator = buildSessionCreator();
 		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
 		testManagingJavaKeystore(sessionCreator);
 	}
 
 	// ---
 
-	private SshCommandExecutorWithNetSchmizzSshj.SessionCreator buildSessionCreator() {
-		SshCommandExecutorWithNetSchmizzSshj.SessionCreator sessionCreator = new SshCommandExecutorWithNetSchmizzSshj.SessionCreator();
+	private SshCommandExecutorNetSchmizzSshj.SessionCreator buildSessionCreator() {
+		SshCommandExecutorNetSchmizzSshj.SessionCreator sessionCreator = new SshCommandExecutorNetSchmizzSshj.SessionCreator();
 		sessionCreator.withHostname("localhost");
 		String username = System.getProperty("user.name");
 		sessionCreator.withUsername(username);
+		sessionCreator.withEchoOutput(System.err);
+		sessionCreator.withEchoInputs(System.out);
 		return sessionCreator;
 	}
 }

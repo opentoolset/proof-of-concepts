@@ -7,25 +7,27 @@ import org.junit.jupiter.api.Test;
 public class TestSshCommandExecutorJsch extends AbstractTestCommandExecutor {
 
 	@Test
-	public void testExecutingSingleCommand() throws Exception {
-		SshCommandExecutorWithJsch.SessionCreator sessionCreator = buildSessionCreator();
-		testExecutingSingleCommand(sessionCreator);
+	public void testExecutingCommands() throws Exception {
+		SshCommandExecutorJsch.SessionCreator sessionCreator = buildSessionCreator();
+		testExecutingCommands(sessionCreator);
 	}
 
 	@Test
 	public void testManagingJavaKeystore() throws Exception {
-		SshCommandExecutorWithJsch.SessionCreator sessionCreator = buildSessionCreator();
+		SshCommandExecutorJsch.SessionCreator sessionCreator = buildSessionCreator();
 		testManagingJavaKeystore(sessionCreator);
 	}
 
 	// ---
 
-	private SshCommandExecutorWithJsch.SessionCreator buildSessionCreator() {
-		SshCommandExecutorWithJsch.SessionCreator sessionCreator = new SshCommandExecutorWithJsch.SessionCreator();
+	private SshCommandExecutorJsch.SessionCreator buildSessionCreator() {
+		SshCommandExecutorJsch.SessionCreator sessionCreator = new SshCommandExecutorJsch.SessionCreator();
 		sessionCreator.withHostname("localhost");
 		String username = System.getProperty("user.name");
 		sessionCreator.withUsername(username);
 		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
+		sessionCreator.withEchoOutput(System.err);
+		sessionCreator.withEchoInputs(System.out);
 		return sessionCreator;
 	}
 }

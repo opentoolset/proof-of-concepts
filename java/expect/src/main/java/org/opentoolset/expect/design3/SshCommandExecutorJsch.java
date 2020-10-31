@@ -8,8 +8,9 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 
 import net.sf.expectit.filter.Filters;
+import net.sf.expectit.matcher.Matchers;
 
-public class SshCommandExecutorWithJsch {
+public class SshCommandExecutorJsch {
 
 	public static class SessionCreator extends CommandExecutor.SessionCreator {
 
@@ -40,6 +41,7 @@ public class SshCommandExecutorWithJsch {
 			withOutput(channel.getOutputStream());
 			withInputs(channel.getInputStream(), channel.getExtInputStream());
 			withInputFilters(Filters.removeColors(), Filters.removeNonPrintable());
+			withDefaultMatcherProvider(() -> Matchers.regexp("\\$"));
 
 			session.create();
 			return getSession();

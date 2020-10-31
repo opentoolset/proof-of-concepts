@@ -7,16 +7,23 @@ import org.junit.jupiter.api.Test;
 public class TestShellCommandExecutor extends AbstractTestCommandExecutor {
 
 	@Test
-	public void testExecutingSingleCommand() throws Exception {
-		ShellCommandExecutor.SessionCreator sessionCreator = new ShellCommandExecutor.SessionCreator();
-		testExecutingSingleCommand(sessionCreator);
+	public void testExecutingCommands() throws Exception {
+		ShellCommandExecutor.SessionCreator sessionCreator = buildSessionCreator();
+		testExecutingCommands(sessionCreator);
 	}
 
 	@Test
 	public void testManagingJavaKeystore() throws Exception {
+		ShellCommandExecutor.SessionCreator sessionCreator = buildSessionCreator();
+		testManagingJavaKeystore(sessionCreator);
+	}
+
+	private ShellCommandExecutor.SessionCreator buildSessionCreator() {
 		ShellCommandExecutor.SessionCreator sessionCreator = new ShellCommandExecutor.SessionCreator();
 		sessionCreator.withShell("/bin/sh");
 		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
-		testManagingJavaKeystore(sessionCreator);
+		sessionCreator.withEchoOutput(System.err);
+		sessionCreator.withEchoInputs(System.out);
+		return sessionCreator;
 	}
 }

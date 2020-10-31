@@ -3,30 +3,39 @@ package org.opentoolset.expect.design3;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import net.sf.expectit.filter.Filters;
+import net.sf.expectit.matcher.Matchers;
+
 public class ShellCommandExecutor {
 
 	public static class SessionCreator extends CommandExecutor.SessionCreator {
 
-		private Session session = buildSession();
-
 		public SessionCreator withShell(String shell) {
-			this.session.shell = shell;
+			getSession().shell = shell;
 			return this;
 		}
 
 		@Override
 		public Session create() throws IOException {
-			Process process = this.session.startShellProcess();
+			Session session = getSession();
+			Process process = session.startShellProcess();
 			withOutput(process.getOutputStream());
 			withInputs(process.getInputStream(), process.getErrorStream());
+			withInputFilters(Filters.removeColors(), Filters.removeNonPrintable());
+			withDefaultMatcherProvider(() -> Matchers.regexp("\n$"));
 
-			this.session.create();
-			return this.session;
+			session.create();
+			return session;
 		}
 
 		@Override
 		protected Session buildSession() {
 			return new Session();
+		}
+
+		@Override
+		protected Session getSession() {
+			return (Session) super.getSession();
 		}
 	}
 
@@ -41,6 +50,7 @@ public class ShellCommandExecutor {
 			try {
 				this.process.waitFor(1, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 			this.process.destroy();
 		}
