@@ -173,7 +173,7 @@ public class CommandExecutor {
 
 		@Override
 		public <R extends Result> R expect(Matcher<R> matcher) throws IOException {
-			R result = this.expect(matcher);
+			R result = this.expect.expect(matcher);
 			return result;
 		}
 
