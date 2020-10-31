@@ -34,6 +34,14 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 	}
 
 	@Test
+	public void testManagingJavaKeystoreOnLocalShellDeclaratively() throws Exception {
+		Process process = createProcess();
+		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForLocalShell(process);
+		testManagingJavaKeystoreDeclaratively(sessionCreator);
+		closeProcess(process);
+	}
+
+	@Test
 	public void testExecutingCommandsInSSHSession() throws Exception {
 		Session sshSession = openSSHSession();
 		Channel sshChannel = openSSHChannel(sshSession);
@@ -49,6 +57,16 @@ public class TestCommandExecutor extends AbstractTestCommandExecutor {
 		Channel sshChannel = openSSHChannel(sshSession);
 		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForSSH(sshChannel);
 		testManagingJavaKeystore(sessionCreator);
+		sshChannel.disconnect();
+		sshSession.disconnect();
+	}
+
+	@Test
+	public void testManagingJavaKeystoreInSSHSessionDeclaratively() throws Exception {
+		Session sshSession = openSSHSession();
+		Channel sshChannel = openSSHChannel(sshSession);
+		CommandExecutor.SessionCreator sessionCreator = buildSessionCreatorForSSH(sshChannel);
+		testManagingJavaKeystoreDeclaratively(sessionCreator);
 		sshChannel.disconnect();
 		sshSession.disconnect();
 	}
