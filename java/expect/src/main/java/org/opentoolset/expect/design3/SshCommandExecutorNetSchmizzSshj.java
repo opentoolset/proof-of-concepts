@@ -13,6 +13,9 @@ import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.userauth.UserAuthException;
 import net.sf.expectit.filter.Filters;
 
+/**
+ * This has not been tested yet
+ */
 public class SshCommandExecutorNetSchmizzSshj {
 
 	public static class SessionCreator extends CommandExecutor.SessionCreator {

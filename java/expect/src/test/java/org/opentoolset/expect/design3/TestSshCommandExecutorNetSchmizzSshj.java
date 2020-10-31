@@ -4,6 +4,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * This has not been executed successfully yet
+ */
 public class TestSshCommandExecutorNetSchmizzSshj extends AbstractTestCommandExecutor {
 
 	@Test
