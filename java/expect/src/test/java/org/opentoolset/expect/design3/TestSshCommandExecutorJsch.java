@@ -18,6 +18,12 @@ public class TestSshCommandExecutorJsch extends AbstractTestCommandExecutor {
 		testManagingJavaKeystore(sessionCreator);
 	}
 
+	@Test
+	public void testManagingJavaKeystoreDeclaratively() throws Exception {
+		SshCommandExecutorJsch.SessionCreator sessionCreator = buildSessionCreator();
+		testManagingJavaKeystoreDeclaratively(sessionCreator);
+	}
+
 	// ---
 
 	private SshCommandExecutorJsch.SessionCreator buildSessionCreator() {

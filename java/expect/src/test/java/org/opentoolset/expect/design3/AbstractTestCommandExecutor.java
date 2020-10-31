@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.opentoolset.expect.AbstractTest;
 
 import net.sf.expectit.Result;
+import net.sf.expectit.interact.InteractBuilder;
 import net.sf.expectit.matcher.Matcher;
 import net.sf.expectit.matcher.Matchers;
 
@@ -108,7 +109,46 @@ public class AbstractTestCommandExecutor extends AbstractTest {
 			session.sendLine("secret");
 			result = session.expect(Matchers.contains(now));
 			Assertions.assertTrue(result.isSuccessful());
-			
+
+			session.sendLine("exit");
+		}
+	}
+
+	protected void testManagingJavaKeystoreDeclaratively(CommandExecutor.SessionCreator sessionBuilder) throws Exception {
+		try (CommandExecutor.Session session = sessionBuilder.create()) {
+			session.getResult(); // Result succeeds for SSH, but fails for local shell. So we couldn't check the result here.
+
+			Path path = Path.of(System.getProperty("user.home")).resolve("expect-test");
+			session.sendLine("mkdir -pv %s; echo $?", path);
+			Assertions.assertTrue(session.expect(Matchers.regexp("0\r?\n")).isSuccessful());
+
+			session.sendLine("cd %s; pwd", path);
+			Assertions.assertTrue(session.expect(Matchers.contains(path.toString())).isSuccessful());
+
+			String now = dateTimeFormatter.format(LocalDateTime.now());
+			session.sendLine("keytool -genkeypair -alias test-%s -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore test.p12 -validity 3650", now);
+
+			InteractBuilder interactBuilder = session.getExpect().interact();
+			{
+				interactBuilder.when(Matchers.contains("Enter keystore password:")).then(result -> session.sendLine("secret"));
+				interactBuilder.when(Matchers.contains("Re-enter new password:")).then(result -> session.sendLine("secret"));
+				interactBuilder.when(Matchers.contains("What is your first and last name?")).then(result -> session.sendLine("name-1"));
+				interactBuilder.when(Matchers.contains("What is the name of your organizational unit?")).then(result -> session.sendLine("unit-1"));
+				interactBuilder.when(Matchers.contains("What is the name of your organization?")).then(result -> session.sendLine("org-1"));
+				interactBuilder.when(Matchers.contains("What is the name of your City or Locality?")).then(result -> session.sendLine("Ankara"));
+				interactBuilder.when(Matchers.contains("What is the name of your State or Province?")).then(result -> session.sendLine("Turkey"));
+				interactBuilder.when(Matchers.contains("What is the two-letter country code for this unit?")).then(result -> session.sendLine("TR"));
+				interactBuilder.when(Matchers.regexp("Is .* correct")).then(result -> session.sendLine("yes"));
+			}
+
+			interactBuilder.until(Matchers.regexp("Generating .* key pair and self-signed certificate"));
+
+			session.sendLine("keytool -list -keystore test.p12 | grep test");
+			Assertions.assertTrue(session.expect(Matchers.contains("Enter keystore password:")).isSuccessful());
+
+			session.sendLine("secret");
+			Assertions.assertTrue(session.expect(Matchers.contains(now)).isSuccessful());
+
 			session.sendLine("exit");
 		}
 	}

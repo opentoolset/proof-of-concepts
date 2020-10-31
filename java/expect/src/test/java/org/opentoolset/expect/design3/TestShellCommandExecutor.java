@@ -18,6 +18,12 @@ public class TestShellCommandExecutor extends AbstractTestCommandExecutor {
 		testManagingJavaKeystore(sessionCreator);
 	}
 
+	@Test
+	public void testManagingJavaKeystoreDeclaratively() throws Exception {
+		ShellCommandExecutor.SessionCreator sessionCreator = buildSessionCreator();
+		testManagingJavaKeystoreDeclaratively(sessionCreator);
+	}
+
 	private ShellCommandExecutor.SessionCreator buildSessionCreator() {
 		ShellCommandExecutor.SessionCreator sessionCreator = new ShellCommandExecutor.SessionCreator();
 		sessionCreator.withShell("/bin/sh");
