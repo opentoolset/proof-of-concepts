@@ -1,0 +1,25 @@
+@startuml
+interface Closeable
+interface Expect extends Closeable
+
+class SessionCreator {
+	Session session
+}
+
+class Session implements Expect {
+	Expect expect
+	
+	Result getResult()
+	void send(String format, Object... args)
+	void sendLine(String format, Object... args)
+	<R extends Result> R expect(long duration, TimeUnit timeUnit, Matcher<R> matcher)
+	Map<Matcher<?>, Result> expectAsMap(Matcher<?>... matchers)
+	Map<Matcher<?>, Result> expect(long duration, TimeUnit timeUnit, Matcher<?>... matchers)
+}
+
+CommandExecutor +-- SessionCreator
+CommandExecutor +-- Session
+SessionCreator *-- "1" Session
+Session *-- "1" Expect
+
+@enduml
