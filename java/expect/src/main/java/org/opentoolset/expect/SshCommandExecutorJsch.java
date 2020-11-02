@@ -34,6 +34,7 @@ public class SshCommandExecutorJsch {
 			return this;
 		}
 
+		@SuppressWarnings("resource")
 		public SessionCreator withSSHProperty(String key, String value) {
 			getSession().config.put(key, value);
 			return this;
