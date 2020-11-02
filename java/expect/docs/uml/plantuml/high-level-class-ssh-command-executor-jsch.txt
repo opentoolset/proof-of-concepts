@@ -1,0 +1,48 @@
+@startuml
+interface Closeable
+interface Expect extends Closeable
+
+class CommandExecutor.SessionCreator {
+	-Session session
+	+Session create()
+	#Session buildSession()
+	#Session getSession()
+}
+
+class CommandExecutor.Session implements Expect {
+	-Expect expect
+}
+
+CommandExecutor.SessionCreator *-- "1" CommandExecutor.Session
+CommandExecutor.Session *-- "1" Expect
+
+class ShellCommandExecutor.SessionCreator extends CommandExecutor.SessionCreator {
+	+Session create()
+	#Session buildSession()
+	#Session getSession()
+}
+
+class ShellCommandExecutor.Session extends CommandExecutor.Session {
+	-String shell
+	-Process process
+	+void close()
+}
+
+class SSHCommandExecutorJsch.SessionCreator extends CommandExecutor.SessionCreator {
+	+Session create()
+	#Session buildSession()
+	#Session getSession()
+}
+
+class SSHCommandExecutorJsch.Session extends CommandExecutor.Session {
+	-com.jcraft.jsch.Session sshSession
+	-Channel channel
+	-String hostname
+	-String username
+	-String password
+	-String identityFile
+	+void close()
+	-Channel connect()
+}
+
+@enduml

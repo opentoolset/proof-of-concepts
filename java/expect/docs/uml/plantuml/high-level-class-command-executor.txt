@@ -1,13 +1,19 @@
 @startuml
 interface Closeable
 interface Expect extends Closeable
+class CommandExecutor
 
 class SessionCreator {
-	Session session
+	-Session session
+	+Session create()
+	#Session buildSession()
+	#Session getSession()
 }
 
 class Session implements Expect {
-	Expect expect
+	-Expect expect
+	+void close()
+	#void create()
 }
 
 CommandExecutor +-- SessionCreator

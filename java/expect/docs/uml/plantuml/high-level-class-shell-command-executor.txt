@@ -1,0 +1,34 @@
+@startuml
+interface Closeable
+interface Expect extends Closeable
+
+class CommandExecutor.SessionCreator {
+	-Session session
+	+Session create()
+	#Session buildSession()
+	#Session getSession()
+}
+
+class CommandExecutor.Session implements Expect {
+	-Expect expect
+	+void close()
+	#void create()
+}
+
+CommandExecutor.SessionCreator *-- "1" CommandExecutor.Session
+CommandExecutor.Session *-- "1" Expect
+
+class ShellCommandExecutor.SessionCreator extends CommandExecutor.SessionCreator {
+	+Session create()
+	#Session buildSession()
+	#Session getSession()
+}
+
+class ShellCommandExecutor.Session extends CommandExecutor.Session {
+	-String shell
+	-Process process
+	+void close()
+	-Process startShellProcess()
+}
+
+@enduml
