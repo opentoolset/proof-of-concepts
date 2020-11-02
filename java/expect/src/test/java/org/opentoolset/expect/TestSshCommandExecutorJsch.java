@@ -34,6 +34,7 @@ public class TestSshCommandExecutorJsch extends AbstractTestCommandExecutor {
 		sessionCreator.withDefaultTimeout(1, TimeUnit.SECONDS);
 		sessionCreator.withEchoOutput(System.err);
 		sessionCreator.withEchoInputs(System.out);
+		sessionCreator.withSSHProperty("StrictHostKeyChecking", "no");
 		return sessionCreator;
 	}
 }

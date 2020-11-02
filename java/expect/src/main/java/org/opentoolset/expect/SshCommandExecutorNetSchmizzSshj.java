@@ -10,6 +10,7 @@ import org.opentoolset.expect.SshCommandExecutorNetSchmizzSshj.Session.Composite
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session.Shell;
 import net.schmizz.sshj.transport.TransportException;
+import net.schmizz.sshj.transport.verification.HostKeyVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
 import net.sf.expectit.filter.Filters;
 
@@ -42,6 +43,11 @@ public class SshCommandExecutorNetSchmizzSshj {
 			return this;
 		}
 
+		public SessionCreator withHostKeyVerifier(HostKeyVerifier hostKeyVerifier) {
+			this.session.hostKeyVerifier = hostKeyVerifier;
+			return this;
+		}
+
 		@Override
 		public Session create() throws IOException, CompositeUserAuthException {
 			Shell sshShell = this.session.startShell();
@@ -71,6 +77,7 @@ public class SshCommandExecutorNetSchmizzSshj {
 		private String username;
 		private String password;
 		private String[] keyFilePaths;
+		private HostKeyVerifier hostKeyVerifier;
 
 		@Override
 		public void close() throws IOException {
@@ -82,7 +89,10 @@ public class SshCommandExecutorNetSchmizzSshj {
 
 		private Shell startShell() throws IOException, CompositeUserAuthException {
 			this.sshClient = new SSHClient();
-			this.sshClient.addHostKeyVerifier((hostname, port, publicKey) -> true);
+			if (this.hostKeyVerifier != null) {
+				this.sshClient.addHostKeyVerifier(this.hostKeyVerifier);
+			}
+
 			this.sshClient.connect(this.hostname);
 			tryAuth();
 			this.sshSession = this.sshClient.startSession();

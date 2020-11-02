@@ -26,7 +26,7 @@ public class CommandExecutor {
 
 	public static class SessionCreator {
 
-		protected Session session = buildSession();
+		private Session session = buildSession();
 
 		public SessionCreator withOutput(OutputStream outputStream) {
 			this.session.outputStream = outputStream;

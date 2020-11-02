@@ -13,7 +13,7 @@ import net.sf.expectit.interact.InteractBuilder;
 import net.sf.expectit.matcher.Matcher;
 import net.sf.expectit.matcher.Matchers;
 
-public class AbstractTestCommandExecutor extends AbstractTest {
+public abstract class AbstractTestCommandExecutor extends AbstractTest {
 
 	private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 

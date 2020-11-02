@@ -31,6 +31,7 @@ public class TestSshCommandExecutorNetSchmizzSshj extends AbstractTestCommandExe
 		sessionCreator.withUsername(username);
 		sessionCreator.withEchoOutput(System.err);
 		sessionCreator.withEchoInputs(System.out);
+		sessionCreator.withHostKeyVerifier((hostname, port, publicKey) -> true);
 		return sessionCreator;
 	}
 }

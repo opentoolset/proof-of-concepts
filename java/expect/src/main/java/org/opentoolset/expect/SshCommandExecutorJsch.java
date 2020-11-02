@@ -34,6 +34,11 @@ public class SshCommandExecutorJsch {
 			return this;
 		}
 
+		public SessionCreator withSSHProperty(String key, String value) {
+			getSession().config.put(key, value);
+			return this;
+		}
+
 		@Override
 		public Session create() throws IOException, JSchException {
 			Session session = getSession();
@@ -69,6 +74,7 @@ public class SshCommandExecutorJsch {
 		private String username;
 		private String password;
 		private String identityFile;
+		private Properties config = new Properties();
 
 		@Override
 		public void close() throws IOException {
@@ -87,10 +93,10 @@ public class SshCommandExecutorJsch {
 
 			this.sshSession = jSch.getSession(this.username, this.hostname);
 			this.sshSession.setPassword(this.password);
+			if (!config.isEmpty()) {
+				this.sshSession.setConfig(config);
+			}
 
-			Properties config = new Properties();
-			config.put("StrictHostKeyChecking", "no");
-			this.sshSession.setConfig(config);
 			this.sshSession.connect();
 
 			this.channel = this.sshSession.openChannel("shell");
