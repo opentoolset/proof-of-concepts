@@ -15,7 +15,7 @@ class CommandExecutor.Session implements Expect {
 	#void create()
 }
 
-CommandExecutor.SessionCreator *-- "1" CommandExecutor.Session
+CommandExecutor.SessionCreator o-- "1" CommandExecutor.Session
 CommandExecutor.Session *-- "1" Expect
 
 class ShellCommandExecutor.SessionCreator extends CommandExecutor.SessionCreator {

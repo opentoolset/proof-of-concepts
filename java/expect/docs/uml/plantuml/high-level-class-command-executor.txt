@@ -18,7 +18,7 @@ class Session implements Expect {
 
 CommandExecutor +-- SessionCreator
 CommandExecutor +-- Session
-SessionCreator *-- "1" Session
+SessionCreator o-- "1" Session
 Session *-- "1" Expect
 
 @enduml
