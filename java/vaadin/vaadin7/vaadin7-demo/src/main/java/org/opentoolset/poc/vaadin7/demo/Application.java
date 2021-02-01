@@ -1,4 +1,4 @@
-package org.opentoolset.poc;
+package org.opentoolset.poc.vaadin7.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package org.opentoolset.poc;
+package org.opentoolset.poc.vaadin7.demo;
 
 import com.vaadin.annotations.Theme;
 import com.vaadin.server.VaadinRequest;
