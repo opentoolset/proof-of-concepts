@@ -3,6 +3,6 @@ mvn archetype:generate \
    -DarchetypeArtifactId=vaadin-archetype-application \
    -DarchetypeVersion=7.7.17 \
    -DgroupId=org.opentoolset.poc \
-   -DartifactId=exec-builder \
+   -DartifactId=vaadin-7 \
    -Dversion=1.0-SNAPSHOT \
    -Dpackaging=war
