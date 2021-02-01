@@ -1,6 +1,10 @@
 package org.opentoolset.poc.vaadin7.demo;
 
+import org.opentoolset.poc.vaadin7.custom.Component1;
+import org.opentoolset.poc.vaadin7.custom.Constants;
+
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Widgetset;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.Button;
@@ -15,6 +19,7 @@ import com.vaadin.ui.VerticalLayout;
  * The UI is initialized using {@link #init(VaadinRequest)}. This method is intended to be overridden to add component to the user interface and initialize non-component functionality.
  */
 @Theme("mytheme")
+@Widgetset(Constants.WIDGETSET)
 @SpringUI
 public class MyUI extends UI {
 
@@ -32,7 +37,9 @@ public class MyUI extends UI {
 			layout.addComponent(new Label("Thanks " + name.getValue() + ", it works!"));
 		});
 
-		layout.addComponents(name, button);
+		Component1 component1 = new Component1();
+
+		layout.addComponents(name, button, component1);
 		layout.setMargin(true);
 		layout.setSpacing(true);
 
