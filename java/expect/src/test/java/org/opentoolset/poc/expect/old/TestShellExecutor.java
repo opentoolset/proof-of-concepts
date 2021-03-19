@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.opentoolset.poc.expect.AbstractTest;
-import org.opentoolset.poc.expect.old.ShellExecutor;
 
 import net.sf.expectit.Result;
 import net.sf.expectit.matcher.Matcher;

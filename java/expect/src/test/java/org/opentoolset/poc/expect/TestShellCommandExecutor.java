@@ -3,7 +3,6 @@ package org.opentoolset.poc.expect;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-import org.opentoolset.poc.expect.ShellCommandExecutor;
 
 public class TestShellCommandExecutor extends AbstractTestCommandExecutor {
 
