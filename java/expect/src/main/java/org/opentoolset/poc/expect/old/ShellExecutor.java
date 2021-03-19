@@ -1,4 +1,4 @@
-package org.opentoolset.expect.old;
+package org.opentoolset.poc.expect.old;
 
 import java.io.Closeable;
 import java.io.IOException;

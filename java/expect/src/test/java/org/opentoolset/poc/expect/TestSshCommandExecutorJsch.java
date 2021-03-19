@@ -1,8 +1,9 @@
-package org.opentoolset.expect;
+package org.opentoolset.poc.expect;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.opentoolset.poc.expect.SshCommandExecutorJsch;
 
 public class TestSshCommandExecutorJsch extends AbstractTestCommandExecutor {
 

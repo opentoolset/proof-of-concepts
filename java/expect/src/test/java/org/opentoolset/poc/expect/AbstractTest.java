@@ -1,4 +1,4 @@
-package org.opentoolset.expect;
+package org.opentoolset.poc.expect;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;

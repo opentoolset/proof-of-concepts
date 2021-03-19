@@ -1,11 +1,12 @@
-package org.opentoolset.expect;
+package org.opentoolset.poc.expect;
 
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-import org.opentoolset.expect.CommandExecutor.SessionCreator;
+import org.opentoolset.poc.expect.CommandExecutor;
+import org.opentoolset.poc.expect.CommandExecutor.SessionCreator;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSch;

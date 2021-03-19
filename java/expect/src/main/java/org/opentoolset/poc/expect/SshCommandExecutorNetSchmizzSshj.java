@@ -1,11 +1,11 @@
-package org.opentoolset.expect;
+package org.opentoolset.poc.expect;
 
 import java.io.IOException;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opentoolset.expect.SshCommandExecutorNetSchmizzSshj.Session.CompositeUserAuthException;
+import org.opentoolset.poc.expect.SshCommandExecutorNetSchmizzSshj.Session.CompositeUserAuthException;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session.Shell;

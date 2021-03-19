@@ -1,4 +1,4 @@
-package org.opentoolset.expect;
+package org.opentoolset.poc.expect;
 
 import java.io.IOException;
 import java.io.InputStream;
